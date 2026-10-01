@@ -14,12 +14,17 @@ import { colors, gap, radius } from '../theme';
 
 // En rad i listan. Motsvarar PlayerCard på webben, men betydligt enklare: 
 // här finns ingen redigering, det hör hemma i detaljvyn.
-function PlayerRow({ player }) {
+function PlayerRow({ player, onPress }) {
   const bild = imageUrl(player.bildPath);
   const skadad = player.status === 'Skadad';
 
   return (
-    <View style={styles.row}>
+    // Pressable i stället för View. style kan vara en funktion som får { pressed },
+    // så blir raden lite nedtonad medan fingret ligger kvar, vilket är mobilens motsvarighet till :hover och :active på webben.
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+    >
       <View style={styles.media}>
         {bild ? (
           <Image source={{ uri: bild }} style={styles.bild} />
@@ -42,11 +47,11 @@ function PlayerRow({ player }) {
           {skadad ? 'Skadad' : 'Tillgänglig'}
         </Text>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
-export default function PlayerListScreen() {
+export default function PlayerListScreen({ navigation }) {
   const { players, loading, refreshing, error, reload } = usePlayers();
 
   if (loading) {
@@ -79,7 +84,16 @@ export default function PlayerListScreen() {
       data={players}
       // keyExtractor motsvarar key i webbens map. Den måste returnera en sträng, så id konverteras.
       keyExtractor={(player) => String(player.id)}
-      renderItem={({ item }) => <PlayerRow player={item} />}
+      renderItem={({ item }) => (
+        <PlayerRow
+          player={item}
+          // Bara id:t skickas med. Hela spelaren och funktioner går inte att serialisera, 
+          // och detaljskärmen hämtar ändå sin data ur contexten. Varför skicka med något som redan finns på ett ställe?
+          // På grund av det här är det inte heller nödvändigt att skicka med en spara-funktion, 
+          // eftersom detaljskärmen kan anropa contextens savePlayer direkt.
+          onPress={() => navigation.navigate('PlayerDetail', { id: item.id })}
+        />
+      )}
       contentContainerStyle={styles.lista}
       // Dra ner för att uppdatera — ett mönster som bara finns på mobil. 
       // Kopplat till refreshing, inte loading, så att listan ligger kvar medan den hämtas om.
@@ -111,6 +125,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radius,
+  },
+  rowPressed: {
+    backgroundColor: colors.bg,
   },
   media: {
     width: 48,

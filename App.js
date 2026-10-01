@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { PlayersProvider } from './src/context/PlayersContext';
+import PlayerDetailScreen from './src/screens/PlayerDetailScreen';
 import PlayerListScreen from './src/screens/PlayerListScreen';
 import { colors } from './src/theme';
 
@@ -33,6 +34,10 @@ export default function App() {
               // title är det användaren läser i rubriken.
               options={{ title: 'Truppen' }}
             />
+
+            {/* Ingen title här. Rubriken sätts av skärmen själv med navigation.setOptions, eftersom namnet bara finns i 
+            contexten — routen bär bara ett id. */}
+            <Stack.Screen name="PlayerDetail" component={PlayerDetailScreen} />
           </Stack.Navigator>
         </NavigationContainer>
 
